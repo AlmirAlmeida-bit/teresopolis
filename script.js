@@ -82,30 +82,32 @@ function init() {
         { y: 40, autoAlpha: 0, stagger: 0.08, duration: 0.6, ease: 'power2.out' }, '<0.1');
   });
 
-  /* MOBILE: sem pin — SAPHIR e SOBRE empilham em fluxo normal, reveals simples ao entrar */
+  /* MOBILE: pin + travessia vertical — garrafa entra sobre SAPHIR, desce e cresce até o SOBRE */
   mm.add('(max-width: 768px)', () => {
-    gsap.set('.sobre', { autoAlpha: 1 }); // aparece em fluxo normal (o CSS a escondia p/ o desktop)
-    gsap.from('.garrafa', {
-      autoAlpha: 0, scale: 0.6, y: -20, duration: 0.7, ease: 'power2.out',
-      scrollTrigger: { trigger: '.saphir', start: 'top 75%' },
-    });
-    gsap.from(saphirChars, {
-      yPercent: 110, autoAlpha: 0, stagger: 0.05, duration: 0.6, ease: 'power2.out',
-      scrollTrigger: { trigger: '.saphir', start: 'top 60%' },
-    });
-    gsap.from('.sobre .descricao > *, .sobre .combinacao > *', {
-      y: 30, autoAlpha: 0, stagger: 0.06, duration: 0.6, ease: 'power2.out',
-      scrollTrigger: { trigger: '.sobre', start: 'top 75%' },
-    });
+    gsap.timeline({
+      scrollTrigger: { trigger: '.produto', start: 'top top', end: '+=150%', scrub: 1, pin: true, anticipatePin: 1 },
+    })
+      /* A — garrafa entra e para CENTRALIZADA na palavra SAPHIR (igual ao desktop) + letras em stagger */
+      .fromTo('.garrafa',
+        { autoAlpha: 0, scale: 0.5, rotate: -25, y: 0 },
+        { autoAlpha: 1, scale: 1.1, rotate: 10, y: 0, duration: 0.6, ease: 'power2.out' })
+      .from(saphirChars, { yPercent: 110, autoAlpha: 0, stagger: 0.05, duration: 0.6, ease: 'power2.out' }, '<')
+      /* B — "SAPHIR" sai por cima (stagger reverte ao subir/descer o scroll) */
+      .to(saphirChars, { yPercent: -130, autoAlpha: 0, stagger: 0.05, duration: 0.6, ease: 'power2.in' })
+      /* C — garrafa desce e cresce; SOBRE (amarelo) aparece + textos em stagger */
+      .to('.garrafa', { y: 60, scale: 1.28, rotate: 0, duration: 0.9, ease: 'power2.inOut' }, '<')
+      .to('.sobre', { autoAlpha: 1, duration: 0.6, ease: 'power2.out' }, '<0.2')
+      .from('.sobre .descricao > *, .sobre .combinacao > *',
+        { y: 30, autoAlpha: 0, stagger: 0.06, duration: 0.6, ease: 'power2.out' }, '<0.1');
   });
 
-  /* ---------- 3. Vídeo: cresce de 55%->100% da largura no scroll; em 100% trava e toca ---------- */
+  /* ---------- 3. Vídeo: cai (repique), bate no chão e dá autoplay; solta pro prêmio no fim ---------- */
   const vid = document.querySelector('.video-scroll');
   vid.pause();
   const videoChars = emChars('.content-video h2');
-  gsap.set(videoChars, { autoAlpha: 0 }); // título escondido durante o crescimento
+  gsap.set(videoChars, { autoAlpha: 0 });
+  gsap.set(vid, { yPercent: -110, filter: 'blur(12px)' }); // começa acima da tela, fora de vista
   let liberado = false;
-  let travado = false;
   let travaSeguranca;
 
   const liberar = () => {   // solta o scroll e rola sozinho até a última seção
@@ -118,46 +120,61 @@ function init() {
   vid.addEventListener('ended', liberar);
   vid.addEventListener('error', liberar);
 
-  const tocarVideo = () => {   // vídeo em 100%: trava o scroll e toca do zero
-    gsap.set(vid, { width: '100%' }); // garante largura cheia
+  const cairEtocar = () => {   // vídeo cai, bate no chão e SÓ ENTÃO dá play
     liberado = false;
     clearTimeout(travaSeguranca);
-    lenis.stop();            // trava o scroll (html recebe overflow:clip via .lenis-stopped)
+    lenis.stop();            // trava o scroll durante a queda + reprodução
     vid.pause();
     vid.currentTime = 0;
-    gsap.fromTo(videoChars,
-      { yPercent: 100, autoAlpha: 0 },
-      { yPercent: 0, autoAlpha: 1, stagger: 0.03, duration: 0.6, ease: 'power2.out' });
-    /* efeito de entrada: blur -> nítido; só depois começa o autoplay */
-    gsap.fromTo(vid,
-      { filter: 'blur(24px)' },
-      {
-        filter: 'blur(0px)', duration: 1.4, ease: 'power2.out',
-        onComplete: () => {
+    gsap.set(videoChars, { autoAlpha: 0 });
+    gsap.timeline()
+      /* queda com repique até bater no chão */
+      .fromTo(vid,
+        { yPercent: -110, filter: 'blur(12px)' },
+        { yPercent: 0, duration: 1.15, ease: 'bounce.out' })
+      /* fundo transiciona do amarelo (sobre) p/ a cor do prêmio, junto com a queda */
+      .fromTo('.section-video',
+        { backgroundColor: '#E9C23A' },
+        { backgroundColor: '#A1D2CE', duration: 1.15, ease: 'power1.inOut' }, 0)
+      /* bateu no chão -> foca, dá play e revela o título */
+      .to(vid, {
+        filter: 'blur(0px)', duration: 0.4, ease: 'power2.out',
+        onStart: () => {
           const p = vid.play();
           if (p) p.catch(() => {}); // autoplay é permitido pois o vídeo é muted
-          travaSeguranca = setTimeout(liberar, ((vid.duration || 15) + 1) * 1000); // trava de segurança se 'ended' falhar
+          travaSeguranca = setTimeout(liberar, ((vid.duration || 15) + 1) * 1000); // trava de segurança
         },
-      });
+      })
+      .fromTo(videoChars,
+        { yPercent: 100, autoAlpha: 0 },
+        { yPercent: 0, autoAlpha: 1, stagger: 0.03, duration: 0.5, ease: 'power2.out' }, '<');
   };
 
-  /* pin + scrub: a largura cresce até 100% (progress ~0..0.85) e segura; trava dentro do hold */
-  const cresce = gsap.timeline()
-    .fromTo(vid, { width: '55%' }, { width: '100%', ease: 'none', duration: 0.85 })
-    .to({}, { duration: 0.15 }); // segura em 100% antes de travar (evita o scrub voltar p/ 99%)
+  const esconderVideo = () => {   // vídeo saiu de vista subindo: volta pro estado "escondido acima"
+    clearTimeout(travaSeguranca);
+    gsap.killTweensOf(vid);
+    gsap.killTweensOf(videoChars);
+    vid.pause();
+    vid.currentTime = 0;
+    gsap.set(vid, { yPercent: -110, filter: 'blur(12px)' });
+    gsap.set(videoChars, { autoAlpha: 0 });
+    gsap.set('.section-video', { backgroundColor: '#E9C23A' }); // volta o fundo pro amarelo p/ a próxima queda
+  };
 
   ScrollTrigger.create({
     trigger: '.section-video',
     start: 'top top',
-    end: '+=100%',
-    scrub: true,
+    end: '+=1',            // pin mínimo; o lenis.stop() segura durante a queda + vídeo
     pin: true,
-    animation: cresce,
-    onEnter: () => { travado = false; gsap.set(videoChars, { autoAlpha: 0 }); }, // novo ciclo
-    onEnterBack: () => { gsap.set(videoChars, { autoAlpha: 0 }); },
-    onUpdate: (self) => {
-      if (!travado && self.progress >= 0.9) { travado = true; tocarVideo(); }
-    },
+    onEnter: cairEtocar,   // desceu até o vídeo: cai e toca do zero
+  });
+
+  /* subindo: mantém o vídeo estático em vista e só o esconde quando ele sai TOTALMENTE por baixo
+     (já na altura do "session ipa") — assim nunca se vê a seção do vídeo vazia */
+  ScrollTrigger.create({
+    trigger: '.section-video',
+    start: 'top bottom',
+    onLeaveBack: esconderVideo,
   });
 
   /* ---------- 4. Prêmio: timeline de entrada (letras + textos + produtos) ---------- */

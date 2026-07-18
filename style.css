@@ -134,13 +134,14 @@ p {
   background-position: center;
 
   h1 {
-    font-size: 128px;
+    font-size: 140px;
   }
 
   span {
     display: inline-block; /* inline ignora transform; sem isso o bob não se move */
     font-family: 'quinor', sans-serif;
-    font-size: 48px;
+    font-size: 56px;
+    margin-top: 48px; /* desce a "Role e descubra" */
   }
 }
 
@@ -189,7 +190,7 @@ p {
 
 /* Seção Sobre */
 .sobre {
-  background-color: #B0B55A;
+  background-color: #E9C23A;
   z-index: 1;
   min-height: 100vh;
   display: flex;
@@ -237,7 +238,9 @@ p {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center; /* vídeo cresce a partir do centro */
+  justify-content: center;
+  background-color: #E9C23A; /* começa amarelo (igual ao sobre); transiciona p/ a cor do prêmio na queda */
+  overflow: hidden; /* esconde o vídeo enquanto está acima da tela (antes de cair) */
 
   video {
     width: 100%;
@@ -329,11 +332,11 @@ p {
 
   .intro {
     h1 {
-      font-size: 88px;
+      font-size: 96px;
     }
 
     span {
-      font-size: 36px;
+      font-size: 42px;
     }
   }
 
@@ -427,63 +430,52 @@ p {
 
   .intro {
     h1 {
-      font-size: 36px;
+      font-size: 40px;
     }
 
     span {
-      font-size: 28px;
+      font-size: 32px;
+      margin-top: 28px; /* desce um pouco menos no mobile */
     }
   }
 
-  /* mobile: sem pin — saphir e sobre empilham em fluxo normal */
-  .produto {
-    height: auto;
-    overflow: visible;
-  }
-
-  .saphir,
-  .sobre {
-    position: relative;
-    height: auto;
-  }
-
+  /* mobile: pin + travessia vertical da garrafa (mesma ideia do desktop) */
   .produto-garrafa {
-    width: 76px;
-    top: 40px;
+    width: 70px;
+    top: 50vh;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     z-index: 3;
   }
 
   .saphir {
     h2 {
-      font-size: 92px;
+      font-size: 104px; /* preenche a largura como no desktop */
     }
   }
 
   .sobre {
     align-items: center;
-    padding: 80px 0;
 
     h2 {
-      font-size: 40px;
-      margin-bottom: 8px;
+      font-size: 34px;
+      margin-bottom: 6px;
     }
 
     h3 {
-      font-size: 24px;
+      font-size: 22px;
     }
 
     p {
-      font-size: 14px;
+      font-size: 13px;
       line-height: 115%;
-      margin-top: 10px;
-      margin-bottom: 10px;
+      margin-top: 8px;
+      margin-bottom: 8px;
     }
 
     .container {
       flex-direction: column;
-      row-gap: 8px;
+      row-gap: 340px; /* espaço p/ a garrafa descer e caber entre os blocos */
       text-align: left;
     }
 
@@ -512,6 +504,9 @@ p {
 
   .section-video {
     .content-video {
+      top: auto;
+      bottom: 40px; /* texto no canto inferior esquerdo (à esquerda pelo padding do container) */
+
       h2 {
         font-size: 46px;
       }
