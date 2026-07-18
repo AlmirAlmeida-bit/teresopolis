@@ -1,0 +1,551 @@
+/* Lenis (scroll suave)*/
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+/* esconde a barra de scroll nativa (rolagem é via Lenis) — some o gap teal na lateral */
+html,
+body {
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* Edge legado */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;              /* Chrome / Safari / Edge */
+}
+
+/* Estados iniciais das animações (só quando o JS está ativo) */
+.js .header .container > *,
+.js .intro h1,
+.js .intro span,
+.js .sobre {
+  opacity: 0;
+}
+
+.js .sobre {
+  visibility: hidden;
+}
+
+/* Fontes */
+@font-face {
+  font-family: 'quinor';
+  src: url(fonts/quinor.woff2);
+}
+
+@font-face {
+  font-family: 'ropa';
+  src: url(fonts/ropa.woff2);
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Estilos globais */
+body {
+  font-family: 'ropa', sans-serif;
+  overflow-x: hidden;
+  background-color: #23B3AE;
+}
+
+/* Tipografia */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'quinor', sans-serif;
+  font-weight: normal;
+  line-height: 100%;
+  text-transform: uppercase;
+}
+
+h2 {
+  font-size: 64px;
+}
+
+h3 {
+  font-size: 48px;
+  font-family: 'ropa', sans-serif;
+}
+
+p {
+  font-size: 20px;
+  line-height: 120%;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1260px;
+  margin: 0 auto;
+}
+
+/* Header */
+.header {
+  position: fixed;
+  top: 12px;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+
+  .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* Hero e introdução */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+
+.intro {
+  /* display: none; */
+  background-image: url(img/background.svg);
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  h1 {
+    font-size: 128px;
+  }
+
+  span {
+    display: inline-block; /* inline ignora transform; sem isso o bob não se move */
+    font-family: 'quinor', sans-serif;
+    font-size: 48px;
+  }
+}
+
+/* Produto */
+.produto {
+  position: relative;
+  overflow: hidden;
+  height: 100vh;
+}
+
+.produto-garrafa {
+  width: 180px;
+
+  position: absolute;
+  top: 50vh;
+  left: 50%;
+
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.garrafa {
+  display: block;
+  width: 100%;
+  transform: rotate(15deg);
+}
+
+/* Seção Saphir */
+.saphir,
+.sobre {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100vh;
+}
+
+.saphir {
+  z-index: 2;
+
+  h2 {
+    font-size: 340px;
+  }
+}
+
+/* Seção Sobre */
+.sobre {
+  background-color: #B0B55A;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+
+
+  h2 {
+    margin-bottom: 24px;
+  }
+
+  .container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .descricao,
+  .combinacao {
+    max-width: 494px;
+  }
+
+  .combinacao {
+    .detalhes {
+      display: flex;
+      column-gap: 48px;
+
+      font-family: 'quinor', sans-serif;
+
+      .info {
+        display: block;
+        font-size: 14px;
+      }
+
+      .valor {
+        color: rgba(255, 255, 255, 0.60);
+        font-size: 36px;
+        text-transform: uppercase;
+      }
+    }
+  }
+}
+
+/* Seção do vídeo */
+.section-video {
+  height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* vídeo cresce a partir do centro */
+
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.7;
+  }
+
+  .content-video {
+    position: absolute;
+    width: 100%;
+    z-index: 2;
+  }
+}
+
+/* Seção Premiação */
+.premio {
+  height: 100vh;
+  background-color: #A1D2CE;
+  display: flex;
+  align-items: center;
+
+  .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .premio-texto {
+    max-width: 494px;
+
+    h2 {
+      margin-bottom: 24px;
+      white-space: nowrap; /* "medalha de prata" numa linha só */
+    }
+
+    h3 {
+      margin-bottom: 28px;
+    }
+  }
+
+  .premio-produtos {
+    display: flex;
+    align-items: flex-end;
+    column-gap: 36px;
+    margin-top: 114px;
+  }
+
+  .premio-lata {
+    display: block;
+    width: 150px;
+  }
+
+  .premio-garrafa {
+    display: block;
+    width: 150px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .container {
+    max-width: 900px;
+    padding: 0 32px;
+  }
+
+  .header {
+    top: 20px;
+
+    .logo img {
+      width: 150px;
+    }
+
+    .palhaco img {
+      width: 72px;
+    }
+  }
+
+  h2 {
+    font-size: 72px;
+  }
+
+  h3 {
+    font-size: 40px;
+  }
+
+  p {
+    font-size: 18px;
+  }
+
+  .intro {
+    h1 {
+      font-size: 88px;
+    }
+
+    span {
+      font-size: 36px;
+    }
+  }
+
+  .produto-garrafa {
+    width: 130px;
+  }
+
+  .saphir {
+    h2 {
+      font-size: 220px;
+    }
+  }
+
+  .sobre {
+    .container {
+      column-gap: 120px;
+    }
+
+    .descricao,
+    .combinacao {
+      max-width: 360px;
+    }
+
+    .combinacao {
+      .detalhes {
+        column-gap: 28px;
+
+        .valor {
+          font-size: 28px;
+        }
+      }
+    }
+  }
+
+  .section-video {
+    .content-video {
+      h2 {
+        font-size: 72px;
+      }
+    }
+  }
+
+  .premio {
+    .container {
+      column-gap: 40px;
+    }
+
+    .premio-produtos {
+      column-gap: 28px;
+      margin-top: 80px;
+    }
+
+    .premio-lata,
+    .premio-garrafa {
+      width: 130px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    max-width: 100%;
+    padding: 0 24px;
+  }
+
+  .header {
+    top: 16px;
+
+    .logo img {
+      width: 120px;
+    }
+
+    .palhaco img {
+      width: 56px;
+    }
+  }
+
+  h2 {
+    font-size: 36px;
+  }
+
+  h3 {
+    font-size: 30px;
+  }
+
+  p {
+    font-size: 16px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+  }
+
+  .intro {
+    h1 {
+      font-size: 36px;
+    }
+
+    span {
+      font-size: 28px;
+    }
+  }
+
+  /* mobile: sem pin — saphir e sobre empilham em fluxo normal */
+  .produto {
+    height: auto;
+    overflow: visible;
+  }
+
+  .saphir,
+  .sobre {
+    position: relative;
+    height: auto;
+  }
+
+  .produto-garrafa {
+    width: 76px;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+  }
+
+  .saphir {
+    h2 {
+      font-size: 92px;
+    }
+  }
+
+  .sobre {
+    align-items: center;
+    padding: 80px 0;
+
+    h2 {
+      font-size: 40px;
+      margin-bottom: 8px;
+    }
+
+    h3 {
+      font-size: 24px;
+    }
+
+    p {
+      font-size: 14px;
+      line-height: 115%;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .container {
+      flex-direction: column;
+      row-gap: 8px;
+      text-align: left;
+    }
+
+    .descricao,
+    .combinacao {
+      max-width: 100%;
+    }
+
+    .combinacao {
+      .detalhes {
+        flex-wrap: wrap;
+        justify-content: center;
+        column-gap: 24px;
+        row-gap: 12px;
+
+        .info {
+          font-size: 12px;
+        }
+
+        .valor {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+
+  .section-video {
+    .content-video {
+      h2 {
+        font-size: 46px;
+      }
+    }
+  }
+
+  .premio {
+    height: auto;
+    min-height: 100vh;
+    padding: 96px 0 120px;
+
+    .container {
+      flex-direction: column;
+      row-gap: 20px;
+      align-items: center;
+    }
+
+    .premio-texto {
+      max-width: 100%;
+
+      h2 {
+        white-space: normal; /* no mobile pode quebrar em 2 linhas p/ não estourar */
+      }
+    }
+
+    .premio-produtos {
+      justify-content: center;
+      column-gap: 20px;
+      margin-top: 12px;
+    }
+
+    .premio-lata,
+    .premio-garrafa {
+      width: 90px;
+    }
+  }
+}
