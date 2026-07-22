@@ -681,11 +681,12 @@ p {
   .premio {
     height: auto;
     min-height: 100vh;
-    padding: 96px 0 120px;
+    align-items: flex-start; /* alinha ao topo; centralizado, o título subia sob o header */
+    padding: 108px 0 96px;   /* topo maior que a altura do header (~83px) */
 
     .container {
       flex-direction: column;
-      row-gap: 20px;
+      row-gap: 12px;
       align-items: center;
     }
 
@@ -700,11 +701,11 @@ p {
     .premio-produtos {
       justify-content: center;
       column-gap: 20px;
-      margin-top: 12px;
+      margin-top: 4px;
     }
 
     .premio-lata {
-      width: 98px;
+      width: 86px;
     }
 
     /* mobile: aviso num canto, logo no outro */
@@ -732,7 +733,7 @@ p {
 
     /* maior que a da história (que fica em 0.92) para a viagem CRESCER, não encolher */
     .premio-garrafa {
-      width: 112px;
+      width: 100px;
     }
   }
 }
