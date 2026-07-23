@@ -40,12 +40,17 @@ body::-webkit-scrollbar {
 /* Estados iniciais das animações (só quando o JS está ativo) */
 .js .header .container > *,
 .js .intro h1,
-.js .intro span,
 .js .sobre {
   opacity: 0;
 }
 
 .js .sobre {
+  visibility: hidden;
+}
+
+/* vídeo escondido até o JS iniciar a queda (evita flash; visibility não conflita
+   com o transform do GSAP, ao contrário de translateY) */
+.js .video-scroll {
   visibility: hidden;
 }
 
@@ -134,7 +139,7 @@ p {
 }
 
 .intro {
-  /* display: none; */
+  min-height: 62vh; /* encurta o hero: menos verde vazio antes da garrafa (o produto é teal igual, sem emenda) */
   background-image: url(img/background.svg);
   background-size: 100%;
   background-repeat: no-repeat;
@@ -142,13 +147,6 @@ p {
 
   h1 {
     font-size: 140px;
-  }
-
-  span {
-    display: inline-block; /* inline ignora transform; sem isso o bob não se move */
-    font-family: 'quinor', sans-serif;
-    font-size: 56px;
-    margin-top: 48px; /* desce a "Role e descubra" */
   }
 }
 
@@ -247,7 +245,7 @@ p {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #E9C23A; /* começa amarelo (igual ao sobre); transiciona p/ a cor do prêmio na queda */
+  background-color: #23B3AE; /* teal da marca: aparece atrás enquanto o vídeo cai */
   overflow: hidden; /* esconde o vídeo enquanto está acima da tela (antes de cair) */
 
   video {
@@ -257,17 +255,46 @@ p {
     opacity: 0.7;
   }
 
+  /* dissolve o rodapé do vídeo no teal da seção de baixo (sem corte seco) */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 15%;
+    background: linear-gradient(to bottom, rgba(35, 179, 174, 0), #23B3AE);
+    z-index: 1;
+    pointer-events: none;
+  }
+
   .content-video {
     position: absolute;
     width: 100%;
     z-index: 2;
   }
+
+  .scroll-hint {
+    position: absolute;
+    right: 64px;
+    bottom: 64px;
+    z-index: 2;
+
+    font-family: 'quinor', sans-serif;
+    font-size: 24px;
+    color: #000;
+    text-transform: uppercase;
+  }
+}
+
+.js .scroll-hint {
+  opacity: 0;
 }
 
 /* Seção História */
 .historia {
   min-height: 100vh;
-  background-color: #A1D2CE; /* mesma cor do prêmio — o vídeo já transiciona pra cá */
+  background-color: #A1D2CE; /* cor final; o amarelo→teal é animado no scroll (script.js) */
   display: flex;
   align-items: center;
   padding: 120px 0;
@@ -320,7 +347,7 @@ p {
 /* Seção Premiação */
 .premio {
   height: 100vh;
-  background-color: #A1D2CE;
+  background-color: #E9C23A; /* amarelo do projeto; o azul->amarelo é animado no scroll (script.js) */
   display: flex;
   align-items: center;
   position: relative; /* âncora do rodapé */
@@ -425,10 +452,6 @@ p {
   .intro {
     h1 {
       font-size: 96px;
-    }
-
-    span {
-      font-size: 42px;
     }
   }
 
@@ -548,11 +571,6 @@ p {
     h1 {
       font-size: 40px;
     }
-
-    span {
-      font-size: 32px;
-      margin-top: 28px; /* desce um pouco menos no mobile */
-    }
   }
 
   /* mobile: pin + travessia vertical da garrafa (mesma ideia do desktop) */
@@ -628,6 +646,12 @@ p {
       h2 {
         font-size: 46px;
       }
+    }
+
+    .scroll-hint {
+      right: 24px;
+      bottom: 40px;
+      font-size: 14px;
     }
   }
 
