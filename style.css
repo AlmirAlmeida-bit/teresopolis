@@ -77,6 +77,11 @@ body {
   font-family: 'ropa', sans-serif;
   overflow-x: hidden;
   background-color: #23B3AE;
+
+  /* sem seleção de texto em todo o site (era o comportamento da session ipa, onde o
+     SAPHIR cobria o conteúdo): evita seleção acidental ao arrastar/rolar, sobretudo no touch */
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Tipografia */
@@ -298,6 +303,23 @@ p {
   display: flex;
   align-items: center;
   padding: 120px 0;
+  position: relative; /* âncora da garrafa (mesma ideia do .produto) */
+
+  /* garrafa própria da seção, como a do SAPHIR: por ser filha da seção pinada, ela fica
+     presa junto no pin — sem precisar compensar scroll, que era o que travava a descida */
+  .historia-garrafa {
+    width: 160px;
+    position: absolute;
+    top: 56%;
+    left: 66%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+
+    img {
+      display: block;
+      width: 100%;
+    }
+  }
 
   .container {
     display: flex;
@@ -656,7 +678,7 @@ p {
   }
 
   .historia {
-    padding: 96px 0;
+    padding: 72px 0; /* menor que antes: em telas curtas a seção estourava a viewport */
 
     .container {
       flex-direction: column;
@@ -680,6 +702,24 @@ p {
       p {
         font-size: 14px;
         line-height: 125%;
+      }
+    }
+
+    /* garrafa ancorada no rodapé da seção e medida em vh (não em px fixo): assim ela
+       encolhe junto com a tela e nunca fica cortada embaixo. Fica na faixa dos marcos —
+       mais acima ela cobriria os parágrafos, que no mobile ocupam a largura toda */
+    .historia-garrafa {
+      width: auto;
+      height: 32vh;
+      top: auto;
+      bottom: 4vh;
+      left: auto;
+      right: 6%;
+      transform: none; /* ancorado por bottom/right, sem o translate do desktop */
+
+      img {
+        width: auto;
+        height: 100%;
       }
     }
 

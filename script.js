@@ -152,51 +152,58 @@ function init() {
       { y: 20, autoAlpha: 0 },
       { y: 0, autoAlpha: 1, duration: 0.5, ease: 'power2.out' });
 
-  /* ---------- 4. História + 5. Prêmio: textos, garrafa (gelatina) e a descida ao prêmio ---------- */
-  const garrafaWrap = document.querySelector('.garrafa-wrap'); // recebe posição/escala/rotação
-  const garrafaImg = document.querySelector('.premio-garrafa'); // recebe a gelatina
-  const secHistoria = document.querySelector('.historia');
-  gsap.set(garrafaImg, { autoAlpha: 0 }); // escondida até ser revelada no pin da história
-
-  /* posição natural no documento via offsets — imune a transform e a scroll */
-  const posDoc = (el) => {
-    let x = 0, y = 0, n = el;
-    while (n) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
-    return { x, y, w: el.offsetWidth, h: el.offsetHeight };
-  };
-  /* deslocamento garrafa (que mora no .premio) -> ponto dela na história. Recalculado no
-     'refresh' do GSAP: só aí o layout está pronto (espaçadores dos pins criados) e nenhuma
-     seção está pinada (position:fixed quebraria a cadeia de offsetTop). Valores em variáveis
-     e lidos por função nos tweens => o GSAP reavalia sozinho a cada refresh */
-  let dx = 0, dy = 0;
-  const recalc = () => {
-    const g = posDoc(garrafaWrap), h = posDoc(secHistoria);
-    const mob = matchMedia('(max-width: 768px)').matches;
-    const fx = mob ? 0.73 : 0.66; /* mobile: perto dos marcos, com respiro e sem sair da tela */
-    const fy = mob ? 0.75 : 0.48;
-    dx = (h.x + h.w * fx) - (g.x + g.w / 2);
-    dy = (h.y + h.h * fy) - (g.y + g.h / 2);
-  };
-  recalc();
-  ScrollTrigger.addEventListener('refresh', recalc);
-
-  /* HISTÓRIA — pin + scrub (mesmo padrão da session ipa): texto -> marcos -> garrafa (gelatina).
-     Durante o pin, o .premio (onde a garrafa mora) fica seguro ABAIXO da tela, então a garrafa
-     deslocada por (dx,dy) fica paradinha no ponto da história enquanto a gelatina a revela.
-     Criado ANTES das transições de cor: o GSAP resolve os start/end na ordem de criação, e o
-     que vem depois já mede o .premio contando o espaço reservado por este pin */
-  gsap.timeline({
-    scrollTrigger: { trigger: '.historia', start: 'top top', end: '+=130%', pin: true, anticipatePin: 1, toggleActions: 'play none none reverse' },
-    defaults: { ease: 'power3.out' },
-  })
-    .from(emChars('.historia-texto h2'), { yPercent: 100, autoAlpha: 0, stagger: 0.05, duration: 0.7 })
-    .from('.historia-texto h3, .historia-texto p', { y: 30, autoAlpha: 0, stagger: 0.12, duration: 0.6 }, '-=0.3')
+  /* ---------- 4. História ---------- */
+  /* Garrafa como elemento DENTRO da própria seção (.historia-garrafa, igual .produto-garrafa
+     no SAPHIR): por ser filha da seção pinada ela fica presa junto, sem a compensação de
+     scroll que fazia a garrafa "agarrar" na descida.
+     toggleActions 'play none none reverse' = toca SOZINHA ao chegar (sem precisar rolar
+     dentro da seção) e REBOBINA ao subir o scroll de volta. O pin segura a seção enquanto
+     a timeline roda, garantindo que dê tempo de ver tudo. */
+  /* durações enxutas: a timeline inteira fecha em ~2,5s, dentro do tempo que o pin segura
+     a seção — assim dá pra ver tudo mesmo rolando rápido, e o rewind volta ligeiro */
+  const tlHistoria = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } })
+    .from(emChars('.historia-texto h2'), { yPercent: 100, autoAlpha: 0, stagger: 0.03, duration: 0.55 })
+    .from('.historia-texto h3, .historia-texto p', { y: 30, autoAlpha: 0, stagger: 0.08, duration: 0.5 }, '-=0.25')
     .from('.historia-marcos > *',
-      { y: 40, autoAlpha: 0, scale: 0.9, stagger: 0.15, duration: 0.6, ease: 'back.out(1.4)' }, '-=0.3')
-    .fromTo(garrafaImg,
-      { autoAlpha: 0, scaleX: 0.64, scaleY: 1.2 },
-      { autoAlpha: 1, scaleX: 1, scaleY: 1, duration: 1.3, ease: 'elastic.out(0.5, 0.62)', transformOrigin: 'bottom center' }, '-=0.1');
+      { y: 40, autoAlpha: 0, scale: 0.9, stagger: 0.1, duration: 0.5, ease: 'back.out(1.4)' }, '-=0.25')
+    /* garrafa entra com a gelatina, já no lugar dela (a seção está presa) */
+    .fromTo('.historia-garrafa',
+      { autoAlpha: 0, scaleX: 0.64, scaleY: 1.2, rotate: -15 },
+      { autoAlpha: 1, scaleX: 1, scaleY: 1, rotate: -8, duration: 0.9, ease: 'power2.out', transformOrigin: 'bottom center' }, '-=0.15');
 
+  ScrollTrigger.create({
+    trigger: '.historia', start: 'top top', end: '+=130%', pin: true, anticipatePin: 1,
+    /* play/reverse pela DIREÇÃO do scroll: descendo, a timeline toca sozinha (sem precisar
+       rolar dentro da seção); subindo, ela rebobina na hora — e como a seção ainda está
+       pinada na tela, o rewind fica visível. Com toggleActions o reverse só saía ao deixar
+       a seção por cima, quando ela já estava saindo de vista (daí não dava pra ver) */
+    onUpdate: (self) => (self.direction === 1 ? tlHistoria.play() : tlHistoria.reverse()),
+    onLeaveBack: () => tlHistoria.reverse(), // continua rebobinando depois de sair por cima
+  });
+
+  /* ---------- 5. Prêmio ---------- */
+  /* mesmo padrão da história: toca sozinha ao chegar e rebobina ao voltar. A garrafa DESCE
+     de cima até o lugar dela ao lado da lata — como ela mora dentro do .premio (pinado), a
+     descida é um transform simples, sem cálculo entre seções. Depois lata e rodapé. */
+  const garrafaWrap = document.querySelector('.garrafa-wrap');
+  const tlPremio = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } })
+    .from(emChars('.premio-texto h2'), { yPercent: 100, autoAlpha: 0, stagger: 0.03, duration: 0.55 })
+    .from('.premio-texto h3, .premio-texto p', { y: 30, autoAlpha: 0, stagger: 0.08, duration: 0.5 }, '-=0.25')
+    /* a garrafa desce e se endireita, sincronizada com o texto */
+    .from(garrafaWrap,
+      { y: () => -window.innerHeight * 0.55, autoAlpha: 0, rotate: -8, scale: 0.92, duration: 0.9, ease: 'power2.out' }, '-=0.35')
+    .from('.premio-lata', { y: 90, autoAlpha: 0, scale: 0.8, duration: 0.6, ease: 'back.out(1.6)' }, '-=0.45')
+    .from('.rodape .aviso', { y: 20, autoAlpha: 0, duration: 0.5 }, '-=0.2')
+    .from('.rodape .logo-coca',
+      { y: 20, autoAlpha: 0, scale: 0.85, duration: 0.6, ease: 'back.out(1.6)' }, '-=0.3');
+
+  ScrollTrigger.create({
+    trigger: '.premio', start: 'top top', end: '+=130%', pin: true, anticipatePin: 1,
+    onUpdate: (self) => (self.direction === 1 ? tlPremio.play() : tlPremio.reverse()),
+    onLeaveBack: () => tlPremio.reverse(),
+  });
+
+  /* cores — criadas DEPOIS dos pins acima, pra medirem as posições já com os espaçadores */
   /* amarelo (session ipa) TRANSFORMA no azul-claro da história, .sobre + .historia juntas */
   gsap.fromTo(['.sobre', '.historia'],
     { backgroundColor: '#E9C23A' },
@@ -208,35 +215,6 @@ function init() {
     { backgroundColor: '#A1D2CE' },
     { backgroundColor: '#E9C23A', ease: 'none',
       scrollTrigger: { trigger: '.premio', start: 'top bottom', end: 'top top', scrub: true } });
-
-  /* GARRAFA — fica PARADA no ponto da história durante o pin. Como ela não está pinada (mora
-     no .premio), sem isso ela rolaria pra cima e sairia de vista enquanto a história fica fixa.
-     A compensação é um scrub linear: y sobe exatamente o tanto que o scroll anda no pin (1.3vh),
-     mantendo a garrafa visualmente imóvel. Tudo por função => reavalia no refresh */
-  const pinPx = () => window.innerHeight * 1.3; // = end '+=130%' do pin da história
-  gsap.fromTo(garrafaWrap,
-    { x: () => dx, y: () => dy, rotate: -15, scale: 0.92 },
-    { x: () => dx, y: () => dy + pinPx(), rotate: -15, scale: 0.92, ease: 'none',
-      scrollTrigger: { trigger: '.historia', start: 'top top', end: '+=130%', scrub: true } });
-
-  /* GARRAFA -> PRÊMIO: DESCE do ponto da história até o lugar dela ao lado da lata (0,0),
-     amarrada ao scroll enquanto o prêmio entra. Começa exatamente onde a compensação parou
-     ('.premio top bottom' == fim do pin da história), sem sobreposição. immediateRender:false
-     pra não sobrescrever a compensação durante o pin */
-  gsap.fromTo(garrafaWrap,
-    { x: () => dx, y: () => dy + pinPx(), rotate: -15, scale: 0.92 },
-    { x: 0, y: 0, rotate: 0, scale: 1, ease: 'none', immediateRender: false,
-      scrollTrigger: { trigger: '.premio', start: 'top bottom', end: 'top 30%', scrub: 1 } });
-
-  /* PRÊMIO — textos carregam quando o scroll chega (one-shot), sincronizados com a garrafa
-     descendo; depois a lata, e por fim o rodapé (aviso -> logo coca) */
-  gsap.timeline({ scrollTrigger: { trigger: '.premio', start: 'top 55%' }, defaults: { ease: 'power3.out' } })
-    .from(emChars('.premio-texto h2'), { yPercent: 100, autoAlpha: 0, stagger: 0.05, duration: 0.7 })
-    .from('.premio-texto h3, .premio-texto p', { y: 30, autoAlpha: 0, stagger: 0.12, duration: 0.6 }, '-=0.3')
-    .from('.premio-lata', { y: 90, autoAlpha: 0, scale: 0.8, duration: 0.7, ease: 'back.out(1.6)' }, '-=0.4')
-    .from('.rodape .aviso', { y: 20, autoAlpha: 0, duration: 0.6 }, '+=0.2')
-    .from('.rodape .logo-coca',
-      { y: 20, autoAlpha: 0, scale: 0.85, duration: 0.7, ease: 'back.out(1.6)' }, '-=0.35');
 
   /* recalcula tudo com os pins já criados, pra todos os start/end baterem com o layout final */
   ScrollTrigger.refresh();
